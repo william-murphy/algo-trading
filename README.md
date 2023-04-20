@@ -27,3 +27,11 @@ mysql.connector
 ##### Installation
 
 User must rename 'credentials.example.py' to 'credentials.py' and adjust the SQL credentials
+
+You can now use the requirements.txt file to install the required packages in your environment by typing the following command:
+
+```
+pip install -r requirements.txt
+```
+
+This command installs all the packages listed in the `requirements.txt` file.
