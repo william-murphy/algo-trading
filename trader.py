@@ -58,3 +58,5 @@ tickers = ['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS']
 def trader():
     connect()
     get_data(start_date=start_date, tickers=tickers)
+
+    return 0
