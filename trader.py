@@ -11,9 +11,11 @@ from credentials import *
 # Connect to local SQL database
 from mysql.connector import errorcode
 
+
 def connect():
     try:
-        cnx = mysql.connector.connect(host=SQL_HOST, user=SQL_USERNAME, passwd=SQL_PASSWORD)
+        cnx = mysql.connector.connect(
+            host=SQL_HOST, user=SQL_USERNAME, passwd=SQL_PASSWORD)
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print('Incorrect user name & password combination.')
@@ -24,6 +26,7 @@ def connect():
     else:
         cnx.close()
 
+
 # Define time frame to query historical data
 start_date = '2009-03-09'
 
@@ -31,6 +34,8 @@ start_date = '2009-03-09'
 tickers = ['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS']
 
 # Create get_data function to return DataFrames of error-free data for analysis
+
+
 def get_data(tickers, start_date, end_date, interval):
 
     # get_data returns long and 2 verisons of wide data as DataFrames
@@ -46,13 +51,15 @@ def get_data(tickers, start_date, end_date, interval):
         end_date = dt.date.today().strftime('%Y-%m-%d')
 
     # Get Yahoo Finance API data
-    df = pd.concat([yf.download(ticker, start=start_date, group_by='Ticker', interval='1d').assign(Ticker=ticker) for ticker in tickers], ignore_index=False)
+    df = pd.concat([yf.download(ticker, start=start_date, group_by='Ticker', interval='1d').assign(
+        Ticker=ticker) for ticker in tickers], ignore_index=False)
 
     # Add 'Date' index as column and reset index of dataframe
     df = df.reset_index()
 
     # Create long version of dataframe
-    df_long = df.melt(id_vars=['Date', 'Ticker'], var_name='OHLCV', value_name='Value')
+    df_long = df.melt(id_vars=['Date', 'Ticker'],
+                      var_name='OHLCV', value_name='Value')
 
     # Create multi-index for df_long such that each value has a unique date, ticker, & OHLCV combination
     df_long.set_index(['Date', 'Ticker', 'OHLCV'], inplace=True)
@@ -71,7 +78,8 @@ def get_data(tickers, start_date, end_date, interval):
     orig_adj_close = df_wide_ohlcv.groupby('Ticker')['Adj Close'].first()
 
     # Create a new column 'Return' and set its value for each row
-    df_wide_ohlcv['Return'] = df_wide_ohlcv.apply(lambda row: row['Adj Close'] / orig_adj_close[row['Ticker']], axis=1)
+    df_wide_ohlcv['Return'] = df_wide_ohlcv.apply(
+        lambda row: row['Adj Close'] / orig_adj_close[row['Ticker']], axis=1)
 
     # Create tickers histograms
     df_wide_ticker.hist()
@@ -86,7 +94,8 @@ def get_data(tickers, start_date, end_date, interval):
     plt.show()
 
     # Pivot the data
-    df_pivot = df_wide_ohlcv.pivot(index='Date', columns='Ticker', values='Return')
+    df_pivot = df_wide_ohlcv.pivot(
+        index='Date', columns='Ticker', values='Return')
 
     # Plot each ticker's return over time
     for col in df_pivot.columns:
@@ -104,16 +113,19 @@ def get_data(tickers, start_date, end_date, interval):
 
     return df_long, df_wide_ticker, df_wide_ohlcv
 
+
 def trader():
     connect()
     # Test get_data
-    df_long, df_wide_ticker, df_wide_ohlcv = get_data(tickers, '2009-03-09', None, '1d')
+    df_long, df_wide_ticker, df_wide_ohlcv = get_data(
+        tickers, '2009-03-09', None, '1d')
 
     # Print get_data dataframes
     print(df_long, df_wide_ticker, df_wide_ohlcv)
 
     # Test get_data again
-    eg_long, eg_wide_ticker, eg_wide_ohlcv = get_data(['GC=F', 'SI=F'], '2011-06-15', None, '1mo')
+    eg_long, eg_wide_ticker, eg_wide_ohlcv = get_data(
+        ['GC=F', 'SI=F'], '2011-06-15', None, '1mo')
 
     # Print get_data dataframes again
     print(eg_long, eg_wide_ticker, eg_wide_ohlcv)

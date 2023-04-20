@@ -1,6 +1,7 @@
 #### algo-trading
 
 ##### contributors
+
 Matt
 Will
 Chris
