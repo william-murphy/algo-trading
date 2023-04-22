@@ -1,11 +1,5 @@
-from trader import *
-
-
-def main():
-    trader()
-
-    return 0
-
+from trader import Trader
 
 if __name__ == '__main__':
-    main()
+    trader = Trader()
+    trader.trader()
