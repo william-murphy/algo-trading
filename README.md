@@ -1,37 +1,25 @@
-#### algo-trading
+# algo-trading
 
-##### contributors
+A systematic trading system for analyzing financial data, engaging in market activity, and generating profit.
 
-Matt
-Will
-Chris
+## Contributors
 
-##### Description
+- Matt
+- Will
+- Chris
+- Pat
 
-A systematic trading system for analyzing financial data, engaging in market activity, and generating profit
+## Dependecies
 
-##### Prerequisites
+- Python 3.10+
+- Pip
+- MySQL
 
-###### Database Management
+## Build Instructions
 
-Some form of MySQL, PostgreSQL Oracle, SQLite, etc.
+1. Create new file called `credentials.py` and copy the contents of `credentials.example.py` into it.
+2. Run `pip install -r requirements.txt` to install the dependencies to your machine.
 
-###### Python imports:
+## Running the Program
 
-yfinance
-pandas
-matplotlib.pyplot
-datetime
-mysql.connector
-
-##### Installation
-
-User must rename 'credentials.example.py' to 'credentials.py' and adjust the SQL credentials
-
-You can now use the requirements.txt file to install the required packages in your environment by typing the following command:
-
-```
-pip install -r requirements.txt
-```
-
-This command installs all the packages listed in the `requirements.txt` file.
+To run the program, first ensure your MySQL server is running, then navigate to the project directory in a terminal window and run `python run.py`.
