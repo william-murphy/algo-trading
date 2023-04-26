@@ -13,12 +13,10 @@ A systematic trading system for analyzing financial data, engaging in market act
 
 - Python 3.10+
 - Pip
-- MySQL
 
 ## Build Instructions
 
-1. Create new file called `credentials.py` and copy the contents of `credentials.example.py` into it.
-2. Run `pip install -r requirements.txt` to install the dependencies to your machine.
+Run `pip install -r requirements.txt` to install the dependencies to your machine.
 
 ## Running the Program
 

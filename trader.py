@@ -1,121 +1,136 @@
-# Import package dependencies
-import yfinance as yf
-import pandas as pd
-import matplotlib.pyplot as plt
-import datetime as dt
-import mysql.connector
+from database_manager import DatabaseManager
 
-# Import credentials.py file with sensitive info
-from credentials import *
-
-# Connect to local SQL database
-from mysql.connector import errorcode
-
-class Trader():
+class Trader:
 
     def __init__(self):
         pass
 
-    def connect(self):
-        try:
-            cnx = mysql.connector.connect(
-                host=SQL_HOST, user=SQL_USERNAME, passwd=SQL_PASSWORD)
-        except mysql.connector.Error as err:
-            if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-                print('Incorrect user name & password combination.')
-            elif err.errno == errorcode.ER_BAD_DB_ERROR:
-                print('Invalid Database.')
-            else:
-                print(err)
-        else:
-            cnx.close()
+    def start(self):
+        # this will be the "jumping off" point for the program, currently just calls the temp database manager test code
+        self.test_database_manager()
 
-    # Create get_data function to return DataFrames of error-free data for analysis
-    def get_data(self, tickers, start_date, end_date, interval):
+    def test_database_manager(self):
+        # temporary driver code for showcasing database manager
+        import yfinance as yf
+        import pandas as pd
 
-        # get_data returns long and 2 verisons of wide data as DataFrames
-        # get_data plots histograms and line graphs of data and removes erroneous values
-        #
-        # tickers (str): desired Yahoo Finance symbol(s) for which to fetch data
-        # start_date (str): start date of query in YYYY-MM-DD format
-        # end_date (str): end date of query in YYYY-MM-DD format, defaults to today
-        # interval (str): intervals of data, options include '1d', '1wk', or '1mo'
+        tickers = ["JPM", "MANU", "CLH"]
+        df = pd.concat([yf.download(ticker, start='2020-08-10', interval='1d').assign(Ticker=ticker).reset_index() for ticker in tickers]).melt(id_vars=['Date', 'Ticker'], var_name='Type', value_name='Value')
+        df["Date"] = df["Date"].apply(lambda x : x.date())
 
-        # end_date defaults to today
-        if end_date is None:
-            end_date = dt.date.today().strftime('%Y-%m-%d')
+        db = DatabaseManager()
+        db.create_tables()
+        db.insert_data(df)
+        print(db.get_active_tickers())
+        db.close()
 
-        # Get Yahoo Finance API data
-        df = pd.concat([yf.download(ticker, start=start_date, group_by='Ticker', interval='1d').assign(Ticker=ticker) for ticker in tickers], ignore_index=False)
 
-        # Add 'Date' index as column and reset index of dataframe
-        df = df.reset_index()
+# old trader code
+# class Trader():
 
-        # Create long version of dataframe
-        df_long = df.melt(id_vars=['Date', 'Ticker'], var_name='OHLCV', value_name='Value')
+#     def __init__(self):
+#         pass
 
-        # Create multi-index for df_long such that each value has a unique date, ticker, & OHLCV combination
-        df_long.set_index(['Date', 'Ticker', 'OHLCV'], inplace=True)
+#     def connect(self):
+#         try:
+#             cnx = mysql.connector.connect(
+#                 host=SQL_HOST, user=SQL_USERNAME, passwd=SQL_PASSWORD)
+#         except mysql.connector.Error as err:
+#             if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+#                 print('Incorrect user name & password combination.')
+#             elif err.errno == errorcode.ER_BAD_DB_ERROR:
+#                 print('Invalid Database.')
+#             else:
+#                 print(err)
+#         else:
+#             cnx.close()
 
-        # Create a wide dataframe version with tickers as columns
-        df_wide_ticker = df_long.unstack('Ticker')['Value']
-        df_wide_ticker.columns.name = 'Ticker'
-        df_wide_ticker = df_wide_ticker.reset_index().rename_axis(None, axis=1)
+#     # Create get_data function to return DataFrames of error-free data for analysis
+#     def get_data(self, tickers, start_date, end_date, interval):
 
-        # Create a wide dataframe version with OHLCV types as columns
-        df_wide_ohlcv = df_long.unstack('OHLCV')['Value']
-        df_wide_ohlcv.columns.name = None
-        df_wide_ohlcv = df_wide_ohlcv.reset_index()
+#         # get_data returns long and 2 verisons of wide data as DataFrames
+#         # get_data plots histograms and line graphs of data and removes erroneous values
+#         #
+#         # tickers (str): desired Yahoo Finance symbol(s) for which to fetch data
+#         # start_date (str): start date of query in YYYY-MM-DD format
+#         # end_date (str): end date of query in YYYY-MM-DD format, defaults to today
+#         # interval (str): intervals of data, options include '1d', '1wk', or '1mo'
 
-        # Calculate the original Adj Close for each instrument
-        orig_adj_close = df_wide_ohlcv.groupby('Ticker')['Adj Close'].first()
+#         # end_date defaults to today
+#         if end_date is None:
+#             end_date = dt.date.today().strftime('%Y-%m-%d')
 
-        # Create a new column 'Return' and set its value for each row
-        df_wide_ohlcv['Return'] = df_wide_ohlcv.apply(lambda row: row['Adj Close'] / orig_adj_close[row['Ticker']], axis=1)
+#         # Get Yahoo Finance API data
+#         df = pd.concat([yf.download(ticker, start=start_date, group_by='Ticker', interval='1d').assign(Ticker=ticker) for ticker in tickers], ignore_index=False)
 
-        # Create tickers histograms
-        df_wide_ticker.hist()
+#         # Add 'Date' index as column and reset index of dataframe
+#         df = df.reset_index()
 
-        # Display tickers histograms
-        plt.show()
+#         # Create long version of dataframe
+#         df_long = df.melt(id_vars=['Date', 'Ticker'], var_name='OHLCV', value_name='Value')
 
-        # Create OHLCV histograms
-        df_wide_ohlcv.hist()
+#         # Create multi-index for df_long such that each value has a unique date, ticker, & OHLCV combination
+#         df_long.set_index(['Date', 'Ticker', 'OHLCV'], inplace=True)
 
-        # Display OHLCV histograms
-        plt.show()
+#         # Create a wide dataframe version with tickers as columns
+#         df_wide_ticker = df_long.unstack('Ticker')['Value']
+#         df_wide_ticker.columns.name = 'Ticker'
+#         df_wide_ticker = df_wide_ticker.reset_index().rename_axis(None, axis=1)
 
-        # Pivot the data
-        df_pivot = df_wide_ohlcv.pivot(index='Date', columns='Ticker', values='Return')
+#         # Create a wide dataframe version with OHLCV types as columns
+#         df_wide_ohlcv = df_long.unstack('OHLCV')['Value']
+#         df_wide_ohlcv.columns.name = None
+#         df_wide_ohlcv = df_wide_ohlcv.reset_index()
 
-        # Plot each ticker's return over time
-        for col in df_pivot.columns:
-            plt.plot(df_pivot.index, df_pivot[col], label=col)
+#         # Calculate the original Adj Close for each instrument
+#         orig_adj_close = df_wide_ohlcv.groupby('Ticker')['Adj Close'].first()
 
-        # Set the x-axis label and title
-        plt.xlabel('Date')
-        plt.title('Returns by Ticker')
+#         # Create a new column 'Return' and set its value for each row
+#         df_wide_ohlcv['Return'] = df_wide_ohlcv.apply(lambda row: row['Adj Close'] / orig_adj_close[row['Ticker']], axis=1)
 
-        # Add a legend
-        plt.legend()
+#         # Create tickers histograms
+#         df_wide_ticker.hist()
 
-        # Show the plot
-        plt.show()
+#         # Display tickers histograms
+#         plt.show()
 
-        return df_long, df_wide_ticker, df_wide_ohlcv
+#         # Create OHLCV histograms
+#         df_wide_ohlcv.hist()
 
-    def trader(self):
-        self.connect()
-        # Test get_data
-        df_long, df_wide_ticker, df_wide_ohlcv = self.get_data(['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS'], '2009-03-09', None, '1d')
+#         # Display OHLCV histograms
+#         plt.show()
 
-        # Print get_data dataframes
-        print(df_long, df_wide_ticker, df_wide_ohlcv)
+#         # Pivot the data
+#         df_pivot = df_wide_ohlcv.pivot(index='Date', columns='Ticker', values='Return')
 
-        # Test get_data again
-        eg_long, eg_wide_ticker, eg_wide_ohlcv = self.get_data(['GC=F', 'SI=F'], '2011-06-15', None, '1mo')
+#         # Plot each ticker's return over time
+#         for col in df_pivot.columns:
+#             plt.plot(df_pivot.index, df_pivot[col], label=col)
 
-        # Print get_data dataframes again
-        print(eg_long, eg_wide_ticker, eg_wide_ohlcv)
+#         # Set the x-axis label and title
+#         plt.xlabel('Date')
+#         plt.title('Returns by Ticker')
 
-        return 0
+#         # Add a legend
+#         plt.legend()
+
+#         # Show the plot
+#         plt.show()
+
+#         return df_long, df_wide_ticker, df_wide_ohlcv
+
+#     def trader(self):
+#         self.connect()
+#         # Test get_data
+#         df_long, df_wide_ticker, df_wide_ohlcv = self.get_data(['JPM', 'BAC', 'C', 'WFC', 'GS', 'MS'], '2009-03-09', None, '1d')
+
+#         # Print get_data dataframes
+#         print(df_long, df_wide_ticker, df_wide_ohlcv)
+
+#         # Test get_data again
+#         eg_long, eg_wide_ticker, eg_wide_ohlcv = self.get_data(['GC=F', 'SI=F'], '2011-06-15', None, '1mo')
+
+#         # Print get_data dataframes again
+#         print(eg_long, eg_wide_ticker, eg_wide_ohlcv)
+
+#         return 0
