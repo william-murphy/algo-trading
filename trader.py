@@ -14,7 +14,7 @@ class Trader:
         import yfinance as yf
         import pandas as pd
 
-        tickers = ["JPM", "MANU", "CLH"]
+        tickers = ["JPM", "MANU", "CLH", "NEE"]
         df = pd.concat([yf.download(ticker, start='2020-08-10', interval='1d').assign(Ticker=ticker).reset_index() for ticker in tickers]).melt(id_vars=['Date', 'Ticker'], var_name='Type', value_name='Value')
         df["Date"] = df["Date"].apply(lambda x : x.date())
 
@@ -22,6 +22,7 @@ class Trader:
         db.create_tables()
         db.insert_data(df)
         print(db.get_active_tickers())
+        print(db.get_database(df))
         db.close()
 
 
