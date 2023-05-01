@@ -20,4 +20,4 @@ Run `pip install -r requirements.txt` to install the dependencies to your machin
 
 ## Running the Program
 
-To run the program, first ensure your MySQL server is running, then navigate to the project directory in a terminal window and run `python run.py`.
+To run the program, navigate to the project directory in a terminal window and run `python run.py`.
